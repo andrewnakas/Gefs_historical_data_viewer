@@ -384,8 +384,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Max Temperature ${comparisonYear} (°C)`,
                 data: comparisonData.daily.temperature_2m_max,
-                borderColor: 'rgba(255, 99, 132, 0.5)',
-                backgroundColor: 'rgba(255, 99, 132, 0.05)',
+                borderColor: 'rgb(255, 140, 0)',
+                backgroundColor: 'rgba(255, 140, 0, 0.1)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true
@@ -393,8 +393,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Mean Temperature ${comparisonYear} (°C)`,
                 data: comparisonData.daily.temperature_2m_mean,
-                borderColor: 'rgba(255, 159, 64, 0.5)',
-                backgroundColor: 'rgba(255, 159, 64, 0.05)',
+                borderColor: 'rgb(218, 165, 32)',
+                backgroundColor: 'rgba(218, 165, 32, 0.1)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true
@@ -402,8 +402,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Min Temperature ${comparisonYear} (°C)`,
                 data: comparisonData.daily.temperature_2m_min,
-                borderColor: 'rgba(54, 162, 235, 0.5)',
-                backgroundColor: 'rgba(54, 162, 235, 0.05)',
+                borderColor: 'rgb(34, 139, 34)',
+                backgroundColor: 'rgba(34, 139, 34, 0.1)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true
@@ -460,22 +460,22 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Total Precipitation ${comparisonYear} (mm)`,
                 data: comparisonData.daily.precipitation_sum,
-                backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                borderColor: 'rgba(54, 162, 235, 0.6)',
+                backgroundColor: 'rgba(255, 140, 0, 0.7)',
+                borderColor: 'rgb(255, 140, 0)',
                 borderWidth: 1
             },
             {
                 label: `Rain ${comparisonYear} (mm)`,
                 data: comparisonData.daily.rain_sum,
-                backgroundColor: 'rgba(75, 192, 192, 0.3)',
-                borderColor: 'rgba(75, 192, 192, 0.6)',
+                backgroundColor: 'rgba(218, 165, 32, 0.7)',
+                borderColor: 'rgb(218, 165, 32)',
                 borderWidth: 1
             },
             {
                 label: `Snowfall ${comparisonYear} (cm)`,
                 data: comparisonData.daily.snowfall_sum,
-                backgroundColor: 'rgba(201, 203, 207, 0.3)',
-                borderColor: 'rgba(201, 203, 207, 0.6)',
+                backgroundColor: 'rgba(138, 43, 226, 0.7)',
+                borderColor: 'rgb(138, 43, 226)',
                 borderWidth: 1
             }
         );
@@ -527,8 +527,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Max Wind Speed ${comparisonYear} (km/h)`,
                 data: comparisonData.daily.windspeed_10m_max,
-                borderColor: 'rgba(153, 102, 255, 0.5)',
-                backgroundColor: 'rgba(153, 102, 255, 0.05)',
+                borderColor: 'rgb(255, 140, 0)',
+                backgroundColor: 'rgba(255, 140, 0, 0.1)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true,
@@ -537,8 +537,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Wind Gusts ${comparisonYear} (km/h)`,
                 data: comparisonData.daily.windgusts_10m_max,
-                borderColor: 'rgba(255, 99, 132, 0.5)',
-                backgroundColor: 'rgba(255, 99, 132, 0.05)',
+                borderColor: 'rgb(218, 165, 32)',
+                backgroundColor: 'rgba(218, 165, 32, 0.1)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true,
@@ -581,8 +581,8 @@ function renderCharts(data, comparisonData = null) {
         solarDatasets.push({
             label: `Shortwave Radiation ${comparisonYear} (MJ/m²)`,
             data: comparisonData.daily.shortwave_radiation_sum,
-            backgroundColor: 'rgba(255, 206, 86, 0.3)',
-            borderColor: 'rgba(255, 206, 86, 0.6)',
+            backgroundColor: 'rgba(255, 140, 0, 0.7)',
+            borderColor: 'rgb(255, 140, 0)',
             borderWidth: 1
         });
     }
@@ -633,8 +633,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Relative Humidity ${comparisonYear} (%)`,
                 data: comparisonData.daily.relative_humidity_2m_mean,
-                borderColor: 'rgba(75, 192, 192, 0.5)',
-                backgroundColor: 'rgba(75, 192, 192, 0.05)',
+                borderColor: 'rgb(255, 140, 0)',
+                backgroundColor: 'rgba(255, 140, 0, 0.1)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true,
@@ -643,8 +643,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Surface Pressure ${comparisonYear} (hPa)`,
                 data: comparisonData.daily.surface_pressure_mean,
-                borderColor: 'rgba(153, 102, 255, 0.5)',
-                backgroundColor: 'rgba(153, 102, 255, 0.05)',
+                borderColor: 'rgb(218, 165, 32)',
+                backgroundColor: 'rgba(218, 165, 32, 0.1)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true,
@@ -697,8 +697,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Cloud Cover ${comparisonYear} (%)`,
                 data: comparisonData.daily.cloudcover_mean,
-                borderColor: 'rgba(201, 203, 207, 0.5)',
-                backgroundColor: 'rgba(201, 203, 207, 0.15)',
+                borderColor: 'rgb(255, 140, 0)',
+                backgroundColor: 'rgba(255, 140, 0, 0.3)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true,
@@ -707,8 +707,8 @@ function renderCharts(data, comparisonData = null) {
             {
                 label: `Precipitation Hours ${comparisonYear}`,
                 data: comparisonData.daily.precipitation_hours,
-                borderColor: 'rgba(54, 162, 235, 0.5)',
-                backgroundColor: 'rgba(54, 162, 235, 0.15)',
+                borderColor: 'rgb(218, 165, 32)',
+                backgroundColor: 'rgba(218, 165, 32, 0.3)',
                 borderDash: [5, 5],
                 tension: 0.4,
                 fill: true,
@@ -832,8 +832,8 @@ function renderPrecipSnowPlumes(data, comparisonData = null) {
             {
                 label: `Total Precipitation ${comparisonYear}`,
                 data: comparisonData.daily.precipitation_sum,
-                borderColor: 'rgba(54, 162, 235, 0.5)',
-                backgroundColor: 'rgba(54, 162, 235, 0.15)',
+                borderColor: 'rgb(255, 140, 0)',
+                backgroundColor: 'rgba(255, 140, 0, 0.3)',
                 borderDash: [5, 5],
                 borderWidth: 3,
                 pointRadius: 2,
@@ -842,8 +842,8 @@ function renderPrecipSnowPlumes(data, comparisonData = null) {
             {
                 label: `Rain ${comparisonYear}`,
                 data: comparisonData.daily.rain_sum,
-                borderColor: 'rgba(75, 192, 192, 0.5)',
-                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                borderColor: 'rgb(218, 165, 32)',
+                backgroundColor: 'rgba(218, 165, 32, 0.2)',
                 borderDash: [5, 5],
                 borderWidth: 2,
                 pointRadius: 1,
@@ -920,8 +920,8 @@ function renderPrecipSnowPlumes(data, comparisonData = null) {
         snowPlumeDatasets.push({
             label: `Snowfall ${comparisonYear}`,
             data: comparisonData.daily.snowfall_sum,
-            borderColor: 'rgba(100, 150, 200, 0.5)',
-            backgroundColor: 'rgba(100, 150, 200, 0.15)',
+            borderColor: 'rgb(138, 43, 226)',
+            backgroundColor: 'rgba(138, 43, 226, 0.3)',
             borderDash: [5, 5],
             borderWidth: 3,
             pointRadius: 2,
@@ -997,8 +997,8 @@ function renderPrecipSnowPlumes(data, comparisonData = null) {
         precipTotalDatasets.push({
             label: `Cumulative Precipitation ${comparisonYear}`,
             data: compPrecipCumulative,
-            borderColor: 'rgba(54, 162, 235, 0.5)',
-            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            borderColor: 'rgb(255, 140, 0)',
+            backgroundColor: 'rgba(255, 140, 0, 0.2)',
             borderDash: [5, 5],
             borderWidth: 3,
             pointRadius: 2,
@@ -1078,8 +1078,8 @@ function renderPrecipSnowPlumes(data, comparisonData = null) {
         snowTotalDatasets.push({
             label: `Cumulative Snowfall ${comparisonYear}`,
             data: compSnowCumulative,
-            borderColor: 'rgba(100, 150, 200, 0.5)',
-            backgroundColor: 'rgba(100, 150, 200, 0.1)',
+            borderColor: 'rgb(138, 43, 226)',
+            backgroundColor: 'rgba(138, 43, 226, 0.2)',
             borderDash: [5, 5],
             borderWidth: 3,
             pointRadius: 2,
