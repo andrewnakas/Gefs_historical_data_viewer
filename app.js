@@ -536,6 +536,22 @@ function renderPrecipSnowPlumes(data) {
 
     const dates = data.daily.time;
 
+    // Calculate cumulative totals
+    let precipCumulative = [];
+    let snowCumulative = [];
+    let precipSum = 0;
+    let snowSum = 0;
+
+    data.daily.precipitation_sum.forEach(val => {
+        precipSum += val || 0;
+        precipCumulative.push(precipSum);
+    });
+
+    data.daily.snowfall_sum.forEach(val => {
+        snowSum += val || 0;
+        snowCumulative.push(snowSum);
+    });
+
     // Precipitation Plume Chart (showing total, rain, and snow as range)
     if (charts.precipPlume) charts.precipPlume.destroy();
     charts.precipPlume = new Chart(document.getElementById('precip-plume-chart'), {
@@ -579,7 +595,7 @@ function renderPrecipSnowPlumes(data) {
                 },
                 title: {
                     display: true,
-                    text: 'Precipitation Analysis',
+                    text: 'Daily Precipitation',
                     font: { size: titleSize }
                 }
             },
@@ -640,7 +656,7 @@ function renderPrecipSnowPlumes(data) {
                 },
                 title: {
                     display: true,
-                    text: 'Snowfall Analysis',
+                    text: 'Daily Snowfall',
                     font: { size: titleSize }
                 }
             },
@@ -660,6 +676,128 @@ function renderPrecipSnowPlumes(data) {
                     title: {
                         display: true,
                         text: 'Daily Snowfall (cm)',
+                        font: { size: titleSize }
+                    }
+                }
+            }
+        }
+    });
+
+    // Precipitation Cumulative Total Chart
+    if (charts.precipTotal) charts.precipTotal.destroy();
+    charts.precipTotal = new Chart(document.getElementById('precip-total-chart'), {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Cumulative Precipitation',
+                    data: precipCumulative,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderWidth: 3,
+                    pointRadius: 2,
+                    fill: 'origin'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: fontSize }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `Total Precipitation: ${precipSum.toFixed(1)} mm`,
+                    font: { size: titleSize }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: { size: fontSize },
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: { size: fontSize }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Cumulative Precipitation (mm)',
+                        font: { size: titleSize }
+                    }
+                }
+            }
+        }
+    });
+
+    // Snow Cumulative Total Chart
+    if (charts.snowTotal) charts.snowTotal.destroy();
+    charts.snowTotal = new Chart(document.getElementById('snow-total-chart'), {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Cumulative Snowfall',
+                    data: snowCumulative,
+                    borderColor: 'rgb(100, 150, 200)',
+                    backgroundColor: 'rgba(100, 150, 200, 0.2)',
+                    borderWidth: 3,
+                    pointRadius: 2,
+                    fill: 'origin'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: fontSize }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `Total Snowfall: ${snowSum.toFixed(1)} cm`,
+                    font: { size: titleSize }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: { size: fontSize },
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: { size: fontSize }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Cumulative Snowfall (cm)',
                         font: { size: titleSize }
                     }
                 }
