@@ -192,6 +192,7 @@
             display: block;
         }
 
+        /* Mobile portrait */
         @media (max-width: 768px) {
             h1 {
                 font-size: 1.8em;
@@ -203,6 +204,62 @@
 
             .charts-grid {
                 grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 10px;
+            }
+        }
+
+        /* Mobile landscape */
+        @media (max-width: 926px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+
+            #map {
+                height: 300px;
+            }
+
+            .controls {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .map-container {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-top: 15px;
+            }
+
+            .chart-container {
+                padding: 15px;
+            }
+
+            .chart-title {
+                font-size: 1em;
+                margin-bottom: 10px;
+            }
+
+            canvas {
+                max-height: 300px;
+            }
+        }
+
+        /* Tablet landscape - 2 column grid */
+        @media (min-width: 927px) and (max-width: 1200px) and (orientation: landscape) {
+            .charts-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>

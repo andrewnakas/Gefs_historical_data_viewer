@@ -1,9 +1,13 @@
 // Global variables
 let map;
 let marker;
+let gridSquare;
 let selectedLat = null;
 let selectedLon = null;
 let charts = {};
+
+// GEFS grid resolution (0.25 degrees)
+const GEFS_GRID_RESOLUTION = 0.25;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -17,10 +21,10 @@ function initializeMap() {
     // Create map centered on US
     map = L.map('map').setView([39.8283, -98.5795], 4);
 
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
+    // Add terrain tiles with topography
+    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+        maxZoom: 17
     }).addTo(map);
 
     // Add click event to map
@@ -30,26 +34,61 @@ function initializeMap() {
     });
 }
 
+// Snap coordinates to GEFS grid
+function snapToGrid(lat, lon) {
+    const snappedLat = Math.round(lat / GEFS_GRID_RESOLUTION) * GEFS_GRID_RESOLUTION;
+    const snappedLon = Math.round(lon / GEFS_GRID_RESOLUTION) * GEFS_GRID_RESOLUTION;
+    return { lat: snappedLat, lon: snappedLon };
+}
+
+// Get grid cell bounds
+function getGridBounds(centerLat, centerLon) {
+    const halfGrid = GEFS_GRID_RESOLUTION / 2;
+    return [
+        [centerLat - halfGrid, centerLon - halfGrid],
+        [centerLat + halfGrid, centerLon + halfGrid]
+    ];
+}
+
 // Select location on map
 function selectLocation(lat, lon) {
-    selectedLat = lat;
-    selectedLon = lon;
+    // Snap to GEFS grid
+    const snapped = snapToGrid(lat, lon);
+    selectedLat = snapped.lat;
+    selectedLon = snapped.lon;
 
-    // Remove existing marker if any
+    // Remove existing marker and grid square if any
     if (marker) {
         map.removeLayer(marker);
     }
+    if (gridSquare) {
+        map.removeLayer(gridSquare);
+    }
 
-    // Add new marker
-    marker = L.marker([lat, lon]).addTo(map);
-    marker.bindPopup(`<b>Selected Location</b><br>Lat: ${lat.toFixed(4)}<br>Lon: ${lon.toFixed(4)}`).openPopup();
+    // Add GEFS grid square
+    const bounds = getGridBounds(selectedLat, selectedLon);
+    gridSquare = L.rectangle(bounds, {
+        color: '#667eea',
+        weight: 2,
+        fillColor: '#667eea',
+        fillOpacity: 0.2
+    }).addTo(map);
+
+    // Add marker at grid center
+    marker = L.marker([selectedLat, selectedLon]).addTo(map);
+    marker.bindPopup(
+        `<b>GEFS Grid Point</b><br>` +
+        `Center: ${selectedLat.toFixed(2)}°, ${selectedLon.toFixed(2)}°<br>` +
+        `Resolution: ${GEFS_GRID_RESOLUTION}°<br>` +
+        `<small>Clicked: ${lat.toFixed(4)}°, ${lon.toFixed(4)}°</small>`
+    ).openPopup();
 
     // Update info display
-    document.getElementById('location-info').textContent = `Latitude: ${lat.toFixed(4)}, Longitude: ${lon.toFixed(4)}`;
-    document.getElementById('coords-info').textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    document.getElementById('location-info').textContent = `Grid Point: ${selectedLat.toFixed(2)}°, ${selectedLon.toFixed(2)}°`;
+    document.getElementById('coords-info').textContent = `${selectedLat.toFixed(2)}°, ${selectedLon.toFixed(2)}° (GEFS Grid)`;
 
     // Reverse geocoding to get location name
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLat}&lon=${selectedLon}`)
         .then(response => response.json())
         .then(data => {
             const locationName = data.display_name || 'Unknown location';
