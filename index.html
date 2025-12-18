@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Data Analysis Dashboard</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Flatpickr CSS for date range picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .map-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        canvas {
+            max-height: 400px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #f5c6cb;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .control-row {
+                flex-direction: column;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌤️ Weather Data Analysis Dashboard</h1>
+
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="start-date">Start Date:</label>
+                    <input type="text" id="start-date" placeholder="Select start date">
+                </div>
+                <div class="control-group">
+                    <label for="end-date">End Date:</label>
+                    <input type="text" id="end-date" placeholder="Select end date">
+                </div>
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button id="fetch-data">Fetch Weather Data</button>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <p><strong>Selected Location:</strong> <span id="location-info">Click on the map to select a location</span></p>
+                <p><strong>Coordinates:</strong> <span id="coords-info">-</span></p>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <h2 style="margin-bottom: 15px; color: #333;">Select Location</h2>
+            <div id="map"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Fetching weather data...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div id="charts" style="display: none;">
+            <h2 style="color: white; margin: 30px 0 20px; font-size: 2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">Weather Analysis Charts</h2>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Temperature Analysis</div>
+                    <canvas id="temp-chart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Precipitation Analysis</div>
+                    <canvas id="precip-chart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Wind Speed Analysis</div>
+                    <canvas id="wind-chart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Solar Radiation</div>
+                    <canvas id="solar-chart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Humidity & Pressure</div>
+                    <canvas id="humidity-chart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Cloud Cover & Visibility</div>
+                    <canvas id="cloud-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Main Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
