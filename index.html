@@ -136,6 +136,8 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            min-height: 300px;
+            position: relative;
         }
 
         .chart-title {
@@ -147,7 +149,13 @@
         }
 
         canvas {
+            width: 100% !important;
+            height: auto !important;
             max-height: 400px;
+        }
+
+        .chart-container canvas {
+            display: block;
         }
 
         .loading {
@@ -204,6 +212,16 @@
 
             .charts-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .chart-container {
+                padding: 15px;
+            }
+
+            canvas {
+                max-height: 250px !important;
+                min-height: 200px;
             }
 
             body {
