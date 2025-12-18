@@ -204,6 +204,76 @@ function renderCharts(data) {
 
     const dates = data.daily.time;
 
+    // Check if mobile for smaller fonts
+    const isMobile = window.innerWidth <= 768;
+    const fontSize = isMobile ? 9 : 12;
+    const titleSize = isMobile ? 11 : 14;
+
+    // Common scale configuration
+    const getXScale = () => ({
+        ticks: {
+            font: { size: fontSize },
+            maxRotation: 45,
+            minRotation: 45
+        }
+    });
+
+    const getYScale = (title, beginAtZero = false) => ({
+        beginAtZero,
+        ticks: {
+            font: { size: fontSize }
+        },
+        title: {
+            display: true,
+            text: title,
+            font: { size: titleSize }
+        }
+    });
+
+    const getLegendConfig = () => ({
+        position: 'top',
+        labels: {
+            font: { size: fontSize },
+            padding: isMobile ? 8 : 10
+        }
+    });
+
+    const getDualYScale = (title1, title2, max1 = null) => ({
+        x: getXScale(),
+        y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            beginAtZero: true,
+            max: max1,
+            ticks: {
+                font: { size: fontSize }
+            },
+            title: {
+                display: true,
+                text: title1,
+                font: { size: titleSize }
+            }
+        },
+        y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            beginAtZero: true,
+            grid: {
+                drawOnChartArea: false
+            },
+            ticks: {
+                font: { size: fontSize }
+            },
+            title: {
+                display: true,
+                text: title2,
+                font: { size: titleSize }
+            }
+        }
+    });
+
     // Temperature Chart
     charts.temperature = new Chart(document.getElementById('temp-chart'), {
         type: 'line',
@@ -240,18 +310,11 @@ function renderCharts(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'top',
-                }
+                legend: getLegendConfig()
             },
             scales: {
-                y: {
-                    beginAtZero: false,
-                    title: {
-                        display: true,
-                        text: 'Temperature (°C)'
-                    }
-                }
+                x: getXScale(),
+                y: getYScale('Temperature (°C)', false)
             }
         }
     });
@@ -289,18 +352,11 @@ function renderCharts(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'top',
-                }
+                legend: getLegendConfig()
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Precipitation (mm/cm)'
-                    }
-                }
+                x: getXScale(),
+                y: getYScale('Precipitation (mm/cm)', true)
             }
         }
     });
@@ -335,18 +391,11 @@ function renderCharts(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'top',
-                }
+                legend: getLegendConfig()
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Wind Speed (km/h)'
-                    }
-                }
+                x: getXScale(),
+                y: getYScale('Wind Speed (km/h)', true)
             }
         }
     });
@@ -370,18 +419,11 @@ function renderCharts(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'top',
-                }
+                legend: getLegendConfig()
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Solar Radiation (MJ/m²)'
-                    }
-                }
+                x: getXScale(),
+                y: getYScale('Solar Radiation (MJ/m²)', true)
             }
         }
     });
@@ -412,46 +454,57 @@ function renderCharts(data) {
                 }
             ]
         },
+
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'top',
-                }
+                legend: getLegendConfig()
             },
-            scales: {
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Humidity (%)'
-                    }
-                },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    grid: {
-                        drawOnChartArea: false
-                    },
-                    title: {
-                        display: true,
-                        text: 'Pressure (hPa)'
-                    }
-                }
-            }
+            scales: getDualYScale("Humidity (%)", "Pressure (hPa)", 100)
         }
     });
 
     // Cloud Cover Chart
-    charts.cloud = new Chart(document.getElementById('cloud-chart'), {
-        type: 'line',
-        data: {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             labels: dates,
             datasets: [
                 {
@@ -478,36 +531,9 @@ function renderCharts(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'top',
-                }
+                legend: getLegendConfig()
             },
-            scales: {
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Cloud Cover (%)'
-                    }
-                },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    beginAtZero: true,
-                    grid: {
-                        drawOnChartArea: false
-                    },
-                    title: {
-                        display: true,
-                        text: 'Precipitation Hours'
-                    }
-                }
-            }
+            scales: getDualYScale('Cloud Cover (%)', 'Precipitation Hours', 100)
         }
     });
 }
