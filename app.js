@@ -126,42 +126,7 @@ function initializeDatePickers() {
 
 // Setup event listeners
 function setupEventListeners() {
-    document.getElementById('fetch-data').addEventListener('click', async () => {
-        await fetchWeatherData();
-        await fetchEnsembleData();
-    });
-}
-
-// Fetch ensemble forecast data
-async function fetchEnsembleData() {
-    if (!selectedLat || !selectedLon) {
-        return;
-    }
-
-    try {
-        // Fetch 16-day ensemble forecast
-        const url = `https://ensemble-api.open-meteo.com/v1/ensemble?` +
-            `latitude=${selectedLat}&longitude=${selectedLon}` +
-            `&hourly=precipitation,snowfall` +
-            `&models=gfs_seamless` +
-            `&timezone=auto`;
-
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            console.error('Ensemble API request failed:', response.statusText);
-            return;
-        }
-
-        const data = await response.json();
-
-        if (data.hourly) {
-            renderEnsemblePlumes(data);
-        }
-
-    } catch (error) {
-        console.error('Error fetching ensemble data:', error);
-    }
+    document.getElementById('fetch-data').addEventListener('click', fetchWeatherData);
 }
 
 // Fetch weather data from Open-Meteo API
@@ -219,6 +184,7 @@ async function fetchWeatherData() {
         requestAnimationFrame(() => {
             setTimeout(() => {
                 renderCharts(data);
+                renderPrecipSnowPlumes(data);
             }, 100);
         });
 
@@ -501,42 +467,9 @@ function renderCharts(data) {
     });
 
     // Cloud Cover Chart
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    charts.cloud = new Chart(document.getElementById('cloud-chart'), {
+        type: 'line',
+        data: {
 
 
 
@@ -596,100 +529,17 @@ function hideError() {
     errorDiv.classList.remove('active');
 }
 
-// Aggregate hourly ensemble data to daily totals
-function aggregateToDaily(hourlyTimes, hourlyData, memberCount) {
-    const dailyData = {};
-
-    hourlyTimes.forEach((time, idx) => {
-        const date = time.split('T')[0];
-        if (!dailyData[date]) {
-            dailyData[date] = Array(memberCount).fill(0);
-        }
-
-        // Sum up hourly values for each ensemble member
-        for (let member = 0; member < memberCount; member++) {
-            const memberData = hourlyData[`precipitation_member${member}`] || hourlyData[`snowfall_member${member}`];
-            if (memberData && memberData[idx] !== null) {
-                dailyData[date][member] += memberData[idx];
-            }
-        }
-    });
-
-    return dailyData;
-}
-
-// Calculate percentiles from ensemble members
-function calculatePercentiles(values) {
-    const sorted = [...values].sort((a, b) => a - b);
-    const len = sorted.length;
-
-    return {
-        min: sorted[0],
-        p10: sorted[Math.floor(len * 0.1)],
-        p25: sorted[Math.floor(len * 0.25)],
-        p50: sorted[Math.floor(len * 0.5)],
-        p75: sorted[Math.floor(len * 0.75)],
-        p90: sorted[Math.floor(len * 0.9)],
-        max: sorted[len - 1],
-        mean: values.reduce((a, b) => a + b, 0) / len
-    };
-}
-
-// Render ensemble plume charts
-function renderEnsemblePlumes(data) {
+// Render precipitation and snow plume-style charts from historical data
+function renderPrecipSnowPlumes(data) {
     document.getElementById('ensemble-charts').style.display = 'block';
 
     const isMobile = window.innerWidth <= 768;
     const fontSize = isMobile ? 9 : 12;
     const titleSize = isMobile ? 11 : 14;
 
-    // Determine number of ensemble members
-    let memberCount = 0;
-    Object.keys(data.hourly).forEach(key => {
-        if (key.startsWith('precipitation_member')) {
-            memberCount++;
-        }
-    });
+    const dates = data.daily.time;
 
-    // Get member keys properly
-    const precipMembers = [];
-    const snowMembers = [];
-    for (let i = 0; i < memberCount; i++) {
-        precipMembers.push(data.hourly[`precipitation_member${i}`]);
-        snowMembers.push(data.hourly[`snowfall_member${i}`]);
-    }
-
-    // Aggregate hourly to daily
-    const dates = [...new Set(data.hourly.time.map(t => t.split('T')[0]))];
-
-    // Calculate daily totals and percentiles
-    const precipDaily = dates.map((date, idx) => {
-        const dayValues = precipMembers.map(member => {
-            const startIdx = idx * 24;
-            const endIdx = Math.min(startIdx + 24, member.length);
-            let sum = 0;
-            for (let i = startIdx; i < endIdx; i++) {
-                sum += member[i] || 0;
-            }
-            return sum;
-        });
-        return calculatePercentiles(dayValues);
-    });
-
-    const snowDaily = dates.map((date, idx) => {
-        const dayValues = snowMembers.map(member => {
-            const startIdx = idx * 24;
-            const endIdx = Math.min(startIdx + 24, member.length);
-            let sum = 0;
-            for (let i = startIdx; i < endIdx; i++) {
-                sum += member[i] || 0;
-            }
-            return sum * 10; // Convert cm to mm equivalent for visualization
-        });
-        return calculatePercentiles(dayValues);
-    });
-
-    // Precipitation Plume Chart
+    // Precipitation Plume Chart (showing total, rain, and snow as range)
     if (charts.precipPlume) charts.precipPlume.destroy();
     charts.precipPlume = new Chart(document.getElementById('precip-plume-chart'), {
         type: 'line',
@@ -697,59 +547,22 @@ function renderEnsemblePlumes(data) {
             labels: dates,
             datasets: [
                 {
-                    label: '10-90% Range',
-                    data: precipDaily.map(d => d.p90),
-                    borderColor: 'rgba(54, 162, 235, 0.3)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                    fill: '+1',
-                    borderWidth: 1,
-                    pointRadius: 0
-                },
-                {
-                    label: '',
-                    data: precipDaily.map(d => d.p10),
-                    borderColor: 'rgba(54, 162, 235, 0.3)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                    fill: false,
-                    borderWidth: 1,
-                    pointRadius: 0
-                },
-                {
-                    label: '25-75% Range',
-                    data: precipDaily.map(d => d.p75),
-                    borderColor: 'rgba(54, 162, 235, 0.5)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                    fill: '+1',
-                    borderWidth: 1,
-                    pointRadius: 0
-                },
-                {
-                    label: '',
-                    data: precipDaily.map(d => d.p25),
-                    borderColor: 'rgba(54, 162, 235, 0.5)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                    fill: false,
-                    borderWidth: 1,
-                    pointRadius: 0
-                },
-                {
-                    label: 'Median',
-                    data: precipDaily.map(d => d.p50),
+                    label: 'Total Precipitation',
+                    data: data.daily.precipitation_sum,
                     borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
                     borderWidth: 3,
                     pointRadius: 2,
                     fill: false
                 },
                 {
-                    label: 'Mean',
-                    data: precipDaily.map(d => d.mean),
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    label: 'Rain',
+                    data: data.daily.rain_sum,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderWidth: 2,
-                    borderDash: [5, 5],
-                    pointRadius: 2,
-                    fill: false
+                    pointRadius: 1,
+                    fill: 'origin'
                 }
             ]
         },
@@ -764,13 +577,12 @@ function renderEnsemblePlumes(data) {
                 legend: {
                     position: 'top',
                     labels: {
-                        font: { size: fontSize },
-                        filter: (item) => item.text !== ''
+                        font: { size: fontSize }
                     }
                 },
                 title: {
                     display: true,
-                    text: `Precipitation Ensemble Plume (${memberCount} members)`,
+                    text: 'Precipitation Analysis',
                     font: { size: titleSize }
                 }
             },
@@ -805,59 +617,13 @@ function renderEnsemblePlumes(data) {
             labels: dates,
             datasets: [
                 {
-                    label: '10-90% Range',
-                    data: snowDaily.map(d => d.p90),
-                    borderColor: 'rgba(201, 203, 207, 0.3)',
-                    backgroundColor: 'rgba(201, 203, 207, 0.1)',
-                    fill: '+1',
-                    borderWidth: 1,
-                    pointRadius: 0
-                },
-                {
-                    label: '',
-                    data: snowDaily.map(d => d.p10),
-                    borderColor: 'rgba(201, 203, 207, 0.3)',
-                    backgroundColor: 'rgba(201, 203, 207, 0.1)',
-                    fill: false,
-                    borderWidth: 1,
-                    pointRadius: 0
-                },
-                {
-                    label: '25-75% Range',
-                    data: snowDaily.map(d => d.p75),
-                    borderColor: 'rgba(201, 203, 207, 0.5)',
-                    backgroundColor: 'rgba(201, 203, 207, 0.3)',
-                    fill: '+1',
-                    borderWidth: 1,
-                    pointRadius: 0
-                },
-                {
-                    label: '',
-                    data: snowDaily.map(d => d.p25),
-                    borderColor: 'rgba(201, 203, 207, 0.5)',
-                    backgroundColor: 'rgba(201, 203, 207, 0.3)',
-                    fill: false,
-                    borderWidth: 1,
-                    pointRadius: 0
-                },
-                {
-                    label: 'Median',
-                    data: snowDaily.map(d => d.p50),
+                    label: 'Snowfall',
+                    data: data.daily.snowfall_sum,
                     borderColor: 'rgb(100, 150, 200)',
-                    backgroundColor: 'rgba(100, 150, 200, 0.5)',
+                    backgroundColor: 'rgba(100, 150, 200, 0.3)',
                     borderWidth: 3,
                     pointRadius: 2,
-                    fill: false
-                },
-                {
-                    label: 'Mean',
-                    data: snowDaily.map(d => d.mean),
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    pointRadius: 2,
-                    fill: false
+                    fill: 'origin'
                 }
             ]
         },
@@ -872,13 +638,12 @@ function renderEnsemblePlumes(data) {
                 legend: {
                     position: 'top',
                     labels: {
-                        font: { size: fontSize },
-                        filter: (item) => item.text !== ''
+                        font: { size: fontSize }
                     }
                 },
                 title: {
                     display: true,
-                    text: `Snowfall Ensemble Plume (${memberCount} members)`,
+                    text: 'Snowfall Analysis',
                     font: { size: titleSize }
                 }
             },
@@ -897,7 +662,7 @@ function renderEnsemblePlumes(data) {
                     },
                     title: {
                         display: true,
-                        text: 'Daily Snowfall (cm water equivalent)',
+                        text: 'Daily Snowfall (cm)',
                         font: { size: titleSize }
                     }
                 }
