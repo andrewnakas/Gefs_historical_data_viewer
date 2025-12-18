@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     initializeDatePickers();
     setupEventListeners();
+
+    // Set Big Sky, Montana as default location
+    // Coordinates: 45.2615°N, 111.3081°W
+    setTimeout(() => {
+        selectLocation(45.2615, -111.3081);
+        map.setView([45.2615, -111.3081], 9);
+    }, 500);
 });
 
 // Initialize Leaflet map
@@ -170,8 +177,15 @@ async function fetchWeatherData() {
             throw new Error('No data available for the selected location and time range');
         }
 
-        renderCharts(data);
+        // Show charts container first to ensure proper sizing
         document.getElementById('charts').style.display = 'block';
+
+        // Render charts after a brief delay to ensure container is visible and sized
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                renderCharts(data);
+            }, 100);
+        });
 
     } catch (error) {
         console.error('Error fetching weather data:', error);
