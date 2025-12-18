@@ -271,13 +271,15 @@ async function fetchWeatherData() {
 }
 
 // Render all charts
-function renderCharts(data) {
+function renderCharts(data, comparisonData = null) {
     // Destroy existing charts
     Object.values(charts).forEach(chart => {
         if (chart) chart.destroy();
     });
 
     const dates = data.daily.time;
+    const primaryYear = new Date(dates[0]).getFullYear();
+    const comparisonYear = comparisonData ? new Date(comparisonData.daily.time[0]).getFullYear() : null;
 
     // Check if mobile for smaller fonts
     const isMobile = window.innerWidth <= 768;
@@ -350,36 +352,70 @@ function renderCharts(data) {
     });
 
     // Temperature Chart
+    const tempDatasets = [
+        {
+            label: `Max Temperature ${primaryYear} (°C)`,
+            data: data.daily.temperature_2m_max,
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+            tension: 0.4,
+            fill: true
+        },
+        {
+            label: `Mean Temperature ${primaryYear} (°C)`,
+            data: data.daily.temperature_2m_mean,
+            borderColor: 'rgb(255, 159, 64)',
+            backgroundColor: 'rgba(255, 159, 64, 0.1)',
+            tension: 0.4,
+            fill: true
+        },
+        {
+            label: `Min Temperature ${primaryYear} (°C)`,
+            data: data.daily.temperature_2m_min,
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            tension: 0.4,
+            fill: true
+        }
+    ];
+
+    if (comparisonData) {
+        tempDatasets.push(
+            {
+                label: `Max Temperature ${comparisonYear} (°C)`,
+                data: comparisonData.daily.temperature_2m_max,
+                borderColor: 'rgba(255, 99, 132, 0.5)',
+                backgroundColor: 'rgba(255, 99, 132, 0.05)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: `Mean Temperature ${comparisonYear} (°C)`,
+                data: comparisonData.daily.temperature_2m_mean,
+                borderColor: 'rgba(255, 159, 64, 0.5)',
+                backgroundColor: 'rgba(255, 159, 64, 0.05)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: `Min Temperature ${comparisonYear} (°C)`,
+                data: comparisonData.daily.temperature_2m_min,
+                borderColor: 'rgba(54, 162, 235, 0.5)',
+                backgroundColor: 'rgba(54, 162, 235, 0.05)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true
+            }
+        );
+    }
+
     charts.temperature = new Chart(document.getElementById('temp-chart'), {
         type: 'line',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Max Temperature (°C)',
-                    data: data.daily.temperature_2m_max,
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'Mean Temperature (°C)',
-                    data: data.daily.temperature_2m_mean,
-                    borderColor: 'rgb(255, 159, 64)',
-                    backgroundColor: 'rgba(255, 159, 64, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'Min Temperature (°C)',
-                    data: data.daily.temperature_2m_min,
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }
-            ]
+            datasets: tempDatasets
         },
         options: {
             responsive: true,
@@ -395,33 +431,61 @@ function renderCharts(data) {
     });
 
     // Precipitation Chart
+    const precipDatasets = [
+        {
+            label: `Total Precipitation ${primaryYear} (mm)`,
+            data: data.daily.precipitation_sum,
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            borderColor: 'rgb(54, 162, 235)',
+            borderWidth: 1
+        },
+        {
+            label: `Rain ${primaryYear} (mm)`,
+            data: data.daily.rain_sum,
+            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+            borderColor: 'rgb(75, 192, 192)',
+            borderWidth: 1
+        },
+        {
+            label: `Snowfall ${primaryYear} (cm)`,
+            data: data.daily.snowfall_sum,
+            backgroundColor: 'rgba(201, 203, 207, 0.7)',
+            borderColor: 'rgb(201, 203, 207)',
+            borderWidth: 1
+        }
+    ];
+
+    if (comparisonData) {
+        precipDatasets.push(
+            {
+                label: `Total Precipitation ${comparisonYear} (mm)`,
+                data: comparisonData.daily.precipitation_sum,
+                backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                borderColor: 'rgba(54, 162, 235, 0.6)',
+                borderWidth: 1
+            },
+            {
+                label: `Rain ${comparisonYear} (mm)`,
+                data: comparisonData.daily.rain_sum,
+                backgroundColor: 'rgba(75, 192, 192, 0.3)',
+                borderColor: 'rgba(75, 192, 192, 0.6)',
+                borderWidth: 1
+            },
+            {
+                label: `Snowfall ${comparisonYear} (cm)`,
+                data: comparisonData.daily.snowfall_sum,
+                backgroundColor: 'rgba(201, 203, 207, 0.3)',
+                borderColor: 'rgba(201, 203, 207, 0.6)',
+                borderWidth: 1
+            }
+        );
+    }
+
     charts.precipitation = new Chart(document.getElementById('precip-chart'), {
         type: 'bar',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Total Precipitation (mm)',
-                    data: data.daily.precipitation_sum,
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                    borderColor: 'rgb(54, 162, 235)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Rain (mm)',
-                    data: data.daily.rain_sum,
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                    borderColor: 'rgb(75, 192, 192)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Snowfall (cm)',
-                    data: data.daily.snowfall_sum,
-                    backgroundColor: 'rgba(201, 203, 207, 0.7)',
-                    borderColor: 'rgb(201, 203, 207)',
-                    borderWidth: 1
-                }
-            ]
+            datasets: precipDatasets
         },
         options: {
             responsive: true,
@@ -437,30 +501,57 @@ function renderCharts(data) {
     });
 
     // Wind Chart
+    const windDatasets = [
+        {
+            label: `Max Wind Speed ${primaryYear} (km/h)`,
+            data: data.daily.windspeed_10m_max,
+            borderColor: 'rgb(153, 102, 255)',
+            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y'
+        },
+        {
+            label: `Wind Gusts ${primaryYear} (km/h)`,
+            data: data.daily.windgusts_10m_max,
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y'
+        }
+    ];
+
+    if (comparisonData) {
+        windDatasets.push(
+            {
+                label: `Max Wind Speed ${comparisonYear} (km/h)`,
+                data: comparisonData.daily.windspeed_10m_max,
+                borderColor: 'rgba(153, 102, 255, 0.5)',
+                backgroundColor: 'rgba(153, 102, 255, 0.05)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y'
+            },
+            {
+                label: `Wind Gusts ${comparisonYear} (km/h)`,
+                data: comparisonData.daily.windgusts_10m_max,
+                borderColor: 'rgba(255, 99, 132, 0.5)',
+                backgroundColor: 'rgba(255, 99, 132, 0.05)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y'
+            }
+        );
+    }
+
     charts.wind = new Chart(document.getElementById('wind-chart'), {
         type: 'line',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Max Wind Speed (km/h)',
-                    data: data.daily.windspeed_10m_max,
-                    borderColor: 'rgb(153, 102, 255)',
-                    backgroundColor: 'rgba(153, 102, 255, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    yAxisID: 'y'
-                },
-                {
-                    label: 'Wind Gusts (km/h)',
-                    data: data.daily.windgusts_10m_max,
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    yAxisID: 'y'
-                }
-            ]
+            datasets: windDatasets
         },
         options: {
             responsive: true,
@@ -476,19 +567,31 @@ function renderCharts(data) {
     });
 
     // Solar Radiation Chart
+    const solarDatasets = [
+        {
+            label: `Shortwave Radiation ${primaryYear} (MJ/m²)`,
+            data: data.daily.shortwave_radiation_sum,
+            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+            borderColor: 'rgb(255, 206, 86)',
+            borderWidth: 1
+        }
+    ];
+
+    if (comparisonData) {
+        solarDatasets.push({
+            label: `Shortwave Radiation ${comparisonYear} (MJ/m²)`,
+            data: comparisonData.daily.shortwave_radiation_sum,
+            backgroundColor: 'rgba(255, 206, 86, 0.3)',
+            borderColor: 'rgba(255, 206, 86, 0.6)',
+            borderWidth: 1
+        });
+    }
+
     charts.solar = new Chart(document.getElementById('solar-chart'), {
         type: 'bar',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Shortwave Radiation (MJ/m²)',
-                    data: data.daily.shortwave_radiation_sum,
-                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
-                    borderColor: 'rgb(255, 206, 86)',
-                    borderWidth: 1
-                }
-            ]
+            datasets: solarDatasets
         },
         options: {
             responsive: true,
@@ -504,30 +607,57 @@ function renderCharts(data) {
     });
 
     // Humidity & Pressure Chart
+    const humidityDatasets = [
+        {
+            label: `Relative Humidity ${primaryYear} (%)`,
+            data: data.daily.relative_humidity_2m_mean,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y'
+        },
+        {
+            label: `Surface Pressure ${primaryYear} (hPa)`,
+            data: data.daily.surface_pressure_mean,
+            borderColor: 'rgb(153, 102, 255)',
+            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y1'
+        }
+    ];
+
+    if (comparisonData) {
+        humidityDatasets.push(
+            {
+                label: `Relative Humidity ${comparisonYear} (%)`,
+                data: comparisonData.daily.relative_humidity_2m_mean,
+                borderColor: 'rgba(75, 192, 192, 0.5)',
+                backgroundColor: 'rgba(75, 192, 192, 0.05)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y'
+            },
+            {
+                label: `Surface Pressure ${comparisonYear} (hPa)`,
+                data: comparisonData.daily.surface_pressure_mean,
+                borderColor: 'rgba(153, 102, 255, 0.5)',
+                backgroundColor: 'rgba(153, 102, 255, 0.05)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y1'
+            }
+        );
+    }
+
     charts.humidity = new Chart(document.getElementById('humidity-chart'), {
         type: 'line',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Relative Humidity (%)',
-                    data: data.daily.relative_humidity_2m_mean,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    yAxisID: 'y'
-                },
-                {
-                    label: 'Surface Pressure (hPa)',
-                    data: data.daily.surface_pressure_mean,
-                    borderColor: 'rgb(153, 102, 255)',
-                    backgroundColor: 'rgba(153, 102, 255, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    yAxisID: 'y1'
-                }
-            ]
+            datasets: humidityDatasets
         },
 
         options: {
@@ -541,30 +671,57 @@ function renderCharts(data) {
     });
 
     // Cloud Cover Chart
+    const cloudDatasets = [
+        {
+            label: `Cloud Cover ${primaryYear} (%)`,
+            data: data.daily.cloudcover_mean,
+            borderColor: 'rgb(201, 203, 207)',
+            backgroundColor: 'rgba(201, 203, 207, 0.3)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y'
+        },
+        {
+            label: `Precipitation Hours ${primaryYear}`,
+            data: data.daily.precipitation_hours,
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.3)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y1'
+        }
+    ];
+
+    if (comparisonData) {
+        cloudDatasets.push(
+            {
+                label: `Cloud Cover ${comparisonYear} (%)`,
+                data: comparisonData.daily.cloudcover_mean,
+                borderColor: 'rgba(201, 203, 207, 0.5)',
+                backgroundColor: 'rgba(201, 203, 207, 0.15)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y'
+            },
+            {
+                label: `Precipitation Hours ${comparisonYear}`,
+                data: comparisonData.daily.precipitation_hours,
+                borderColor: 'rgba(54, 162, 235, 0.5)',
+                backgroundColor: 'rgba(54, 162, 235, 0.15)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y1'
+            }
+        );
+    }
+
     charts.cloud = new Chart(document.getElementById('cloud-chart'), {
         type: 'line',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Cloud Cover (%)',
-                    data: data.daily.cloudcover_mean,
-                    borderColor: 'rgb(201, 203, 207)',
-                    backgroundColor: 'rgba(201, 203, 207, 0.3)',
-                    tension: 0.4,
-                    fill: true,
-                    yAxisID: 'y'
-                },
-                {
-                    label: 'Precipitation Hours',
-                    data: data.daily.precipitation_hours,
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                    tension: 0.4,
-                    fill: true,
-                    yAxisID: 'y1'
-                }
-            ]
+            datasets: cloudDatasets
         },
         options: {
             responsive: true,
@@ -601,7 +758,7 @@ function hideError() {
 }
 
 // Render precipitation and snow plume-style charts from historical data
-function renderPrecipSnowPlumes(data) {
+function renderPrecipSnowPlumes(data, comparisonData = null) {
     document.getElementById('ensemble-charts').style.display = 'block';
 
     const isMobile = window.innerWidth <= 768;
@@ -609,8 +766,10 @@ function renderPrecipSnowPlumes(data) {
     const titleSize = isMobile ? 11 : 14;
 
     const dates = data.daily.time;
+    const primaryYear = new Date(dates[0]).getFullYear();
+    const comparisonYear = comparisonData ? new Date(comparisonData.daily.time[0]).getFullYear() : null;
 
-    // Calculate cumulative totals
+    // Calculate cumulative totals for primary data
     let precipCumulative = [];
     let snowCumulative = [];
     let precipSum = 0;
@@ -626,32 +785,78 @@ function renderPrecipSnowPlumes(data) {
         snowCumulative.push(snowSum);
     });
 
+    // Calculate cumulative totals for comparison data
+    let compPrecipCumulative = [];
+    let compSnowCumulative = [];
+    let compPrecipSum = 0;
+    let compSnowSum = 0;
+
+    if (comparisonData) {
+        comparisonData.daily.precipitation_sum.forEach(val => {
+            compPrecipSum += val || 0;
+            compPrecipCumulative.push(compPrecipSum);
+        });
+
+        comparisonData.daily.snowfall_sum.forEach(val => {
+            compSnowSum += val || 0;
+            compSnowCumulative.push(compSnowSum);
+        });
+    }
+
     // Precipitation Plume Chart (showing total, rain, and snow as range)
     if (charts.precipPlume) charts.precipPlume.destroy();
+
+    const precipPlumeDatasets = [
+        {
+            label: `Total Precipitation ${primaryYear}`,
+            data: data.daily.precipitation_sum,
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.3)',
+            borderWidth: 3,
+            pointRadius: 2,
+            fill: false
+        },
+        {
+            label: `Rain ${primaryYear}`,
+            data: data.daily.rain_sum,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderWidth: 2,
+            pointRadius: 1,
+            fill: 'origin'
+        }
+    ];
+
+    if (comparisonData) {
+        precipPlumeDatasets.push(
+            {
+                label: `Total Precipitation ${comparisonYear}`,
+                data: comparisonData.daily.precipitation_sum,
+                borderColor: 'rgba(54, 162, 235, 0.5)',
+                backgroundColor: 'rgba(54, 162, 235, 0.15)',
+                borderDash: [5, 5],
+                borderWidth: 3,
+                pointRadius: 2,
+                fill: false
+            },
+            {
+                label: `Rain ${comparisonYear}`,
+                data: comparisonData.daily.rain_sum,
+                borderColor: 'rgba(75, 192, 192, 0.5)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                pointRadius: 1,
+                fill: 'origin'
+            }
+        );
+    }
+
     charts.precipPlume = new Chart(document.getElementById('precip-plume-chart'), {
         type: 'line',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Total Precipitation',
-                    data: data.daily.precipitation_sum,
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                    borderWidth: 3,
-                    pointRadius: 2,
-                    fill: false
-                },
-                {
-                    label: 'Rain',
-                    data: data.daily.rain_sum,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderWidth: 2,
-                    pointRadius: 1,
-                    fill: 'origin'
-                }
-            ]
+            datasets: precipPlumeDatasets
         },
         options: {
             responsive: true,
@@ -698,21 +903,37 @@ function renderPrecipSnowPlumes(data) {
 
     // Snow Plume Chart
     if (charts.snowPlume) charts.snowPlume.destroy();
+
+    const snowPlumeDatasets = [
+        {
+            label: `Snowfall ${primaryYear}`,
+            data: data.daily.snowfall_sum,
+            borderColor: 'rgb(100, 150, 200)',
+            backgroundColor: 'rgba(100, 150, 200, 0.3)',
+            borderWidth: 3,
+            pointRadius: 2,
+            fill: 'origin'
+        }
+    ];
+
+    if (comparisonData) {
+        snowPlumeDatasets.push({
+            label: `Snowfall ${comparisonYear}`,
+            data: comparisonData.daily.snowfall_sum,
+            borderColor: 'rgba(100, 150, 200, 0.5)',
+            backgroundColor: 'rgba(100, 150, 200, 0.15)',
+            borderDash: [5, 5],
+            borderWidth: 3,
+            pointRadius: 2,
+            fill: 'origin'
+        });
+    }
+
     charts.snowPlume = new Chart(document.getElementById('snow-plume-chart'), {
         type: 'line',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Snowfall',
-                    data: data.daily.snowfall_sum,
-                    borderColor: 'rgb(100, 150, 200)',
-                    backgroundColor: 'rgba(100, 150, 200, 0.3)',
-                    borderWidth: 3,
-                    pointRadius: 2,
-                    fill: 'origin'
-                }
-            ]
+            datasets: snowPlumeDatasets
         },
         options: {
             responsive: true,
@@ -759,21 +980,41 @@ function renderPrecipSnowPlumes(data) {
 
     // Precipitation Cumulative Total Chart
     if (charts.precipTotal) charts.precipTotal.destroy();
+
+    const precipTotalDatasets = [
+        {
+            label: `Cumulative Precipitation ${primaryYear}`,
+            data: precipCumulative,
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderWidth: 3,
+            pointRadius: 2,
+            fill: 'origin'
+        }
+    ];
+
+    if (comparisonData) {
+        precipTotalDatasets.push({
+            label: `Cumulative Precipitation ${comparisonYear}`,
+            data: compPrecipCumulative,
+            borderColor: 'rgba(54, 162, 235, 0.5)',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            borderDash: [5, 5],
+            borderWidth: 3,
+            pointRadius: 2,
+            fill: 'origin'
+        });
+    }
+
+    const precipTotalTitle = comparisonData
+        ? `Total Precipitation: ${primaryYear} = ${precipSum.toFixed(1)} mm | ${comparisonYear} = ${compPrecipSum.toFixed(1)} mm`
+        : `Total Precipitation: ${precipSum.toFixed(1)} mm`;
+
     charts.precipTotal = new Chart(document.getElementById('precip-total-chart'), {
         type: 'line',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Cumulative Precipitation',
-                    data: precipCumulative,
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderWidth: 3,
-                    pointRadius: 2,
-                    fill: 'origin'
-                }
-            ]
+            datasets: precipTotalDatasets
         },
         options: {
             responsive: true,
@@ -791,7 +1032,7 @@ function renderPrecipSnowPlumes(data) {
                 },
                 title: {
                     display: true,
-                    text: `Total Precipitation: ${precipSum.toFixed(1)} mm`,
+                    text: precipTotalTitle,
                     font: { size: titleSize }
                 }
             },
@@ -820,21 +1061,41 @@ function renderPrecipSnowPlumes(data) {
 
     // Snow Cumulative Total Chart
     if (charts.snowTotal) charts.snowTotal.destroy();
+
+    const snowTotalDatasets = [
+        {
+            label: `Cumulative Snowfall ${primaryYear}`,
+            data: snowCumulative,
+            borderColor: 'rgb(100, 150, 200)',
+            backgroundColor: 'rgba(100, 150, 200, 0.2)',
+            borderWidth: 3,
+            pointRadius: 2,
+            fill: 'origin'
+        }
+    ];
+
+    if (comparisonData) {
+        snowTotalDatasets.push({
+            label: `Cumulative Snowfall ${comparisonYear}`,
+            data: compSnowCumulative,
+            borderColor: 'rgba(100, 150, 200, 0.5)',
+            backgroundColor: 'rgba(100, 150, 200, 0.1)',
+            borderDash: [5, 5],
+            borderWidth: 3,
+            pointRadius: 2,
+            fill: 'origin'
+        });
+    }
+
+    const snowTotalTitle = comparisonData
+        ? `Total Snowfall: ${primaryYear} = ${snowSum.toFixed(1)} cm | ${comparisonYear} = ${compSnowSum.toFixed(1)} cm`
+        : `Total Snowfall: ${snowSum.toFixed(1)} cm`;
+
     charts.snowTotal = new Chart(document.getElementById('snow-total-chart'), {
         type: 'line',
         data: {
             labels: dates,
-            datasets: [
-                {
-                    label: 'Cumulative Snowfall',
-                    data: snowCumulative,
-                    borderColor: 'rgb(100, 150, 200)',
-                    backgroundColor: 'rgba(100, 150, 200, 0.2)',
-                    borderWidth: 3,
-                    pointRadius: 2,
-                    fill: 'origin'
-                }
-            ]
+            datasets: snowTotalDatasets
         },
         options: {
             responsive: true,
@@ -852,7 +1113,7 @@ function renderPrecipSnowPlumes(data) {
                 },
                 title: {
                     display: true,
-                    text: `Total Snowfall: ${snowSum.toFixed(1)} cm`,
+                    text: snowTotalTitle,
                     font: { size: titleSize }
                 }
             },
