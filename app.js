@@ -470,9 +470,6 @@ function renderCharts(data) {
     charts.cloud = new Chart(document.getElementById('cloud-chart'), {
         type: 'line',
         data: {
-
-
-
             labels: dates,
             datasets: [
                 {
