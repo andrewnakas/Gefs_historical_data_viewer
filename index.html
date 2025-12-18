@@ -309,6 +309,19 @@
                 </div>
             </div>
 
+            <div class="control-row">
+                <div class="control-group" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="enable-comparison" style="width: auto;">
+                    <label for="enable-comparison" style="margin: 0;">Compare with previous year</label>
+                </div>
+                <div class="control-group">
+                    <label for="comparison-year">Comparison Year:</label>
+                    <select id="comparison-year" disabled>
+                        <option value="">Select year...</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="info-box">
                 <p><strong>Selected Location:</strong> <span id="location-info">Click on the map to select a location</span></p>
                 <p><strong>Coordinates:</strong> <span id="coords-info">-</span></p>

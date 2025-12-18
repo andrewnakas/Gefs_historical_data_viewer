@@ -5,6 +5,8 @@ let gridSquare;
 let selectedLat = null;
 let selectedLon = null;
 let charts = {};
+let comparisonEnabled = false;
+let comparisonYear = null;
 
 // GEFS grid resolution (0.25 degrees)
 const GEFS_GRID_RESOLUTION = 0.25;
@@ -114,19 +116,57 @@ function initializeDatePickers() {
     flatpickr("#start-date", {
         defaultDate: thirtyDaysAgo,
         maxDate: today,
-        dateFormat: "Y-m-d"
+        dateFormat: "Y-m-d",
+        onChange: updateComparisonYearOptions
     });
 
     flatpickr("#end-date", {
         defaultDate: today,
         maxDate: today,
-        dateFormat: "Y-m-d"
+        dateFormat: "Y-m-d",
+        onChange: updateComparisonYearOptions
     });
+
+    // Initialize comparison year dropdown
+    updateComparisonYearOptions();
+}
+
+// Update comparison year dropdown based on selected dates
+function updateComparisonYearOptions() {
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+    const yearSelect = document.getElementById('comparison-year');
+
+    if (!startDate || !endDate) return;
+
+    const currentYear = new Date(endDate).getFullYear();
+    yearSelect.innerHTML = '<option value="">Select year...</option>';
+
+    // Add years from 2000 to one year before current selection
+    for (let year = currentYear - 1; year >= 2000; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+    }
 }
 
 // Setup event listeners
 function setupEventListeners() {
     document.getElementById('fetch-data').addEventListener('click', fetchWeatherData);
+
+    document.getElementById('enable-comparison').addEventListener('change', (e) => {
+        comparisonEnabled = e.target.checked;
+        document.getElementById('comparison-year').disabled = !comparisonEnabled;
+        if (!comparisonEnabled) {
+            document.getElementById('comparison-year').value = '';
+            comparisonYear = null;
+        }
+    });
+
+    document.getElementById('comparison-year').addEventListener('change', (e) => {
+        comparisonYear = e.target.value ? parseInt(e.target.value) : null;
+    });
 }
 
 // Fetch weather data from Open-Meteo API
@@ -149,10 +189,16 @@ async function fetchWeatherData() {
         return;
     }
 
+    if (comparisonEnabled && !comparisonYear) {
+        showError('Please select a comparison year!');
+        return;
+    }
+
     showLoading(true);
     hideError();
 
     try {
+        // Fetch primary data
         const url = `https://archive-api.open-meteo.com/v1/archive?` +
             `latitude=${selectedLat}&longitude=${selectedLon}` +
             `&start_date=${startDate}&end_date=${endDate}` +
@@ -177,14 +223,42 @@ async function fetchWeatherData() {
             throw new Error('No data available for the selected location and time range');
         }
 
+        let comparisonData = null;
+
+        // Fetch comparison data if enabled
+        if (comparisonEnabled && comparisonYear) {
+            const yearDiff = new Date(startDate).getFullYear() - comparisonYear;
+            const compStartDate = new Date(startDate);
+            compStartDate.setFullYear(compStartDate.getFullYear() - yearDiff);
+            const compEndDate = new Date(endDate);
+            compEndDate.setFullYear(compEndDate.getFullYear() - yearDiff);
+
+            const compUrl = `https://archive-api.open-meteo.com/v1/archive?` +
+                `latitude=${selectedLat}&longitude=${selectedLon}` +
+                `&start_date=${compStartDate.toISOString().split('T')[0]}&end_date=${compEndDate.toISOString().split('T')[0]}` +
+                `&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,` +
+                `precipitation_sum,rain_sum,snowfall_sum,` +
+                `windspeed_10m_max,windgusts_10m_max,winddirection_10m_dominant,` +
+                `shortwave_radiation_sum,` +
+                `relative_humidity_2m_mean,surface_pressure_mean,` +
+                `cloudcover_mean,` +
+                `precipitation_hours` +
+                `&timezone=auto`;
+
+            const compResponse = await fetch(compUrl);
+            if (compResponse.ok) {
+                comparisonData = await compResponse.json();
+            }
+        }
+
         // Show charts container first to ensure proper sizing
         document.getElementById('charts').style.display = 'block';
 
         // Render charts after a brief delay to ensure container is visible and sized
         requestAnimationFrame(() => {
             setTimeout(() => {
-                renderCharts(data);
-                renderPrecipSnowPlumes(data);
+                renderCharts(data, comparisonData);
+                renderPrecipSnowPlumes(data, comparisonData);
             }, 100);
         });
 
